@@ -5,12 +5,16 @@
 #include <mpi.h>
 #include <omp.h>
 
+struct vtx2 {
+	double x, y;
+}
+
 struct cell_t {
 	int32_t id_up, id_left, id_down, id_right;
-	double *fieldValue;
-	uint32_t *vertexIDs;
+	double fieldValue[3];
 	double area;
 	int32_t tags;
+	vtx2 centre;
 };
 
 struct BC_t {
@@ -31,8 +35,34 @@ struct state_t {
 	int64_t BCs;
 	BC_t *BC;
 	
+	int64_t consts;
+	double* constValue;
+	
 	double t;
 };
+
+/*
+ * Message format: Const data
+ * 	uint16_t N_Consts
+ * 		double value
+ * 
+ * Message format: cell data
+ * 	uint16_t nFields
+ * 	uint32_t N_cells
+ * 		int32_t id_up
+ * 		int32_t id_left
+ * 		int32_t id_down
+ * 		int32_t id_right
+ *	 		double fieldValue
+ * 		int16_t tags
+ * 		double centre_x
+ * 		double centre_y
+ *	
+ * Message format: tag data
+ * 	uint16_t NTags
+ * 		uint16_t NCellsInTag
+ * 		uint32_t cellID
+ */
 
 int rank, nWorkers;
 
@@ -42,7 +72,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nWorkers);
 	
-	printf("rank=%d \n",rank);
+	//Receive subdomain data
 	
 	MPI_Finalize();
 };
